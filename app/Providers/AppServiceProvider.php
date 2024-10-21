@@ -2,8 +2,10 @@
 
 namespace App\Providers;
 
+use Illuminate\Auth\Middleware\Authenticate;
 use Illuminate\Support\ServiceProvider;
 
+use Illuminate\Routing\Router;
 class AppServiceProvider extends ServiceProvider
 {
     /**
@@ -17,8 +19,10 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Bootstrap any application services.
      */
-    public function boot(): void
+    public function boot(Router $router): void
     {
-        //
+        // Register your route middleware
+
+        $router->aliasMiddleware('permission', \App\Http\Middleware\CheckPermission::class);
     }
 }

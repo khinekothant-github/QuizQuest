@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
 <p align="center">
@@ -64,3 +65,7 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+=======
+# QuizQuest
+A Laravel and Vue.js application featuring a robust user management system with role-based access control. This project includes user registration, authentication, and permission management using Laravel Sanctum and Vue Router. It also demonstrates the integration of Tailwind CSS for responsive design and Axios for API communication.
+>>>>>>> 728e8c616d1e6e6997e03a7ecad9862b18a6049e

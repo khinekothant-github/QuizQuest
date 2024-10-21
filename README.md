@@ -93,8 +93,6 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 ## Acknowledgments
 
 - Thanks to the Laravel and Vue.js communities for their excellent frameworks and tools.
-- Special thanks to the contributors and users who have supported this project.
-
 ---
 
 Feel free to reach out if you have any questions or need further assistance with the project.

@@ -51,3 +51,5 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 Route::middleware('auth:sanctum')->get('permissions/check', [AuthController::class, 'checkPermission']);
+
+Route::middleware('auth:sanctum')->get('/user-details', [UserController::class, 'getUserDetails']);

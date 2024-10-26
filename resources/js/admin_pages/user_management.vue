@@ -6,8 +6,7 @@
         <h1 class="text-2xl tracking-tight font-bold text-gray-900 dark:text-white mb-4">User Management</h1>
 
         <!-- Add User Button -->
-        <button
-          @click="showAddUserModal = true"
+        <button v-if="hasPermission('create user')" @click="showAddUserModal = true"
           class="bg-blue-600 text-white rounded-lg py-2.5 px-5 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-800 mb-4"
         >
           Add User
@@ -72,8 +71,7 @@
                     </div>
                   </div>
                   <div class="flex justify-end pt-4">
-                    <button
-                      type="submit"
+                    <button v-if="hasPermission('create user')" type="submit"
                       class="bg-blue-600 text-white rounded-lg py-2.5 px-5 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-800"
                     >
                       Add User
@@ -87,7 +85,7 @@
         </div>
 
         <!-- Existing Users List -->
-        <div class="mb-6">
+        <div v-if="hasPermission('view user')" class="mb-6">
           <div class="overflow-x-auto">
             <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
               <thead class="text-xs text-gray-700 uppercase bg-gray-200 dark:bg-gray-700 dark:text-gray-400">
@@ -104,12 +102,12 @@
                   <td class="py-4 px-6">{{ user.email }}</td>
                   <td class="py-4 px-6">{{ user.role }}</td> <!-- Display role -->
                   <td class="py-4 px-6 flex space-x-4">
-                    <button @click="editUser(user)" class="text-gray-800 hover:text-gray-900 dark:text-white dark:hover:text-gray-300">
+                    <button v-if="hasPermission('edit user')" @click="editUser(user)" class="text-gray-800 hover:text-gray-900 dark:text-white dark:hover:text-gray-300">
                       <svg class="w-6 h-6 text-blue-500 dark:text-blue-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m14.304 4.844 2.852 2.852M7 7H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-4.5m2.409-9.91a2.017 2.017 0 0 1 0 2.853l-6.844 6.844L8 14l.713-3.565 6.844-6.844a2.015 2.015 0 0 1 2.852 0Z"/>
                       </svg>
                     </button>
-                    <button @click="deleteUser(user.id)" class="text-gray-800 hover:text-gray-900 dark:text-white dark:hover:text-gray-300">
+                    <button v-if="hasPermission('delete user')" @click="deleteUser(user.id)" class="text-gray-800 hover:text-gray-900 dark:text-white dark:hover:text-gray-300">
                       <svg class="w-6 h-6 text-red-500 dark:text-red-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
                         <path fill-rule="evenodd" d="M8.586 2.586A2 2 0 0 1 10 2h4a2 2 0 0 1 2 2v2h3a1 1 0 1 1 0 2v12a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V8a1 1 0 0 1 0-2h3V4a2 2 0 0 1 .586-1.414ZM10 6h4V4h-4v2Zm1 4a1 1 0 1 0-2 0v8a1 1 0 1 0 2 0v-8Zm4 0a1 1 0 1 0-2 0v8a1 1 0 1 0 2 0v-8Z" clip-rule="evenodd"/>
                       </svg>
@@ -164,10 +162,10 @@
                         required
                       />
                     </div>
-                    <div>
+                    <div v-if="hasPermission('assign role')">
                       <label class="block mb-1 text-sm font-medium text-gray-900 dark:text-white">Role</label>
                       <select v-model="selectedRole" class="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                        <option v-for="role in availableRoles" :key="role.id" :value="role.id">{{ role.name }}</option>
+                        <option  v-for="role in availableRoles" :key="role.id" :value="role.id">{{ role.name }}</option>
                       </select>
                     </div>
                   </div>
@@ -190,9 +188,12 @@
 </template>
 
 <script>
+
 import Admin_navbar from '../components/admin_navbar.vue';
 import UserService from '../services/user';
 import EventBus from '../eventBus';
+
+import { mapGetters } from 'vuex/dist/vuex.cjs.js';
 
 export default {
     name: "UserManagement",
@@ -218,6 +219,9 @@ export default {
         };
     },
     computed: {
+        ...mapGetters({
+            hasPermission:'hasPermission'
+        }),
         totalPages() {
             return Math.ceil(this.users.length / this.perPage);
         },
@@ -287,7 +291,9 @@ export default {
                     name: this.editingUser.username,
                     email: this.editingUser.email,
                 });
-                await UserService.assignRole(this.editingUser.id, { role_id: this.selectedRole });
+                if (!this.selectedRole==null) {
+                    await UserService.assignRole(this.editingUser.id, { role_id: this.selectedRole });
+                }
                 this.closeEditModal();
                 await this.fetchUsers(); // Refresh the user list
                 EventBus.emit('userUpdated');
@@ -339,6 +345,13 @@ export default {
     mounted() {
 
         this.initializeData(); // Fetch all data on mount
+        this.$store.dispatch('fetchUserDetails')
+      .then(() => {
+        console.log("User details fetched successfully");
+      })
+      .catch(() => {
+        console.log("Failed to fetch user details");
+      });
     },
     beforeDestroy() {
         EventBus.off('adminUserLoggedIn', this.initializeData);
@@ -353,6 +366,7 @@ export default {
 <style scoped>
 /* Additional styling if needed */
 </style>
+
 
 
 

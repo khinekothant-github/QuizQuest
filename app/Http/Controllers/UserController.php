@@ -136,5 +136,22 @@ class UserController extends Controller
         ]);
     }
 
+    public function getUserDetails(Request $request): JsonResponse
+    {
+        $user = $request->user(); // Assuming you are using Laravel's authentication
 
+        // Fetch the user's roles and permissions
+        $roles = $user->roles; // Assuming 'roles' relationship is defined in the User model
+        $permissions = $roles->flatMap(function ($role) {
+            return $role->permissions;
+        })->unique('id'); // Get unique permissions
+
+        return response()->json([
+            'user' => $user,
+            'roleNames' => $roles->pluck('name'), // Return the role names
+            'permissions' => $permissions->pluck('name'), // Return the permission names
+        ]);
+    }
 }
+
+

@@ -3,21 +3,7 @@ import axios from 'axios';
 const API_URL = 'http://127.0.0.1:8000/api/';
 
 class AuthService {
-    constructor() {
-        this.setupInterceptors();
-    }
 
-    setupInterceptors() {
-        axios.interceptors.response.use(
-            response => response,
-            error => {
-                if (error.response && error.response.status === 403) {
-                    alert('You do not have permission to do this action.');
-                }
-                return Promise.reject(error);
-            }
-        );
-    }
 
     async register(user) {
         return await axios.post(API_URL + 'register', user);
@@ -45,6 +31,12 @@ class AuthService {
     async getUser() {
         const token = localStorage.getItem('token');
         return await axios.get(`${API_URL}user`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+    }
+    async getUserDetails() {
+        const token = localStorage.getItem('token');
+        return await axios.get(`${API_URL}user-details`, {
             headers: { Authorization: `Bearer ${token}` }
         });
     }

@@ -74,10 +74,6 @@ Welcome to **QuizQuest**, a comprehensive web application built with Laravel and
   - Users can register and log in to access quizzes and track their progress.
   - Admin users can manage other users and assign roles.
 
-- **Quiz Management**:
-  - Users can participate in quizzes and view their scores.
-  - Admins can create, update, and delete quizzes.
-
 - **Role and Permission Management**:
   - Admins can create roles and assign permissions to users.
   - Permissions are managed through a dedicated interface.
@@ -93,8 +89,6 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 ## Acknowledgments
 
 - Thanks to the Laravel and Vue.js communities for their excellent frameworks and tools.
-- Special thanks to the contributors and users who have supported this project.
-
 ---
 
 Feel free to reach out if you have any questions or need further assistance with the project.

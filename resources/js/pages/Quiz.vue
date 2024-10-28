@@ -1,146 +1,147 @@
 <template>
     <Navbar></Navbar>
-  <section
-    class="bg-gray-50 dark:bg-gray-900 flex items-center justify-center overflow-y-auto"
-  >
-    <div
-      class="max-w-7xl mx-auto sm:px-6 lg:px-8  "
-      style="padding-top: 10%; padding-bottom: 5%"
+    <section
+      class="bg-gray-50 dark:bg-gray-900 flex items-center justify-center min-h-screen"
     >
       <div
-        class="bg-white dark:bg-gray-800 overflow-hidden shadow-lg rounded-lg"
+        class="max-w-7xl mx-auto sm:px-6 lg:px-8 w-full"
+        style="padding-top: 10%; padding-bottom: 5%"
       >
-        <div class="p-4 text-gray-900 dark:text-gray-100">
-          <!-- Display loading state -->
-          <div v-if="loading" class="text-center w-full">
-            <p>Loading questions...</p>
-            <div class="loader"></div> <!-- You can replace this with a spinner component -->
-          </div>
+        <div
+          class="bg-white dark:bg-gray-800 overflow-hidden shadow-lg rounded-lg min-h-[300px]"
+        >
+          <div class="p-4 text-gray-900 dark:text-gray-100">
+            <!-- Display loading state -->
+            <div v-if="loading" class="text-center w-full h-[300px] flex flex-col items-center justify-center"> <!-- Set height for consistency -->
+              <p>Loading questions...</p>
+              <div class="loader mt-4"></div>
+            </div>
 
-          <!-- Display quiz questions before submission -->
-          <div v-else-if="!results">
-            <form @submit.prevent="submitQuiz">
-              <div
-                v-for="(question, index) in questions"
-                :key="index"
-                class="mb-4"
+            <!-- Display quiz questions before submission -->
+            <div v-else-if="!results">
+              <form @submit.prevent="submitQuiz">
+                <div
+                  v-for="(question, index) in questions"
+                  :key="index"
+                  class="mb-4"
+                >
+                  <p
+                    class="block mb-1 text-sm font-medium text-gray-900 dark:text-white"
+                  >
+                    {{ question.question }}
+                  </p>
+                  <div
+                    v-for="(answer, answerIndex) in getShuffledAnswers(index)"
+                    :key="answerIndex"
+                  >
+                    <label
+                      class="flex items-center space-x-2 mt-1 p-1 bg-gray-100 dark:bg-gray-700 rounded-lg shadow-sm"
+                    >
+                      <input
+                        type="radio"
+                        :name="'question_' + index"
+                        :value="answer"
+                        v-model="userAnswers[index]"
+                        class="form-radio h-4 w-4 text-indigo-600"
+                      />
+                      <span
+                        class="text-sm font-medium text-gray-900 dark:text-white"
+                      >
+                        {{ answer }}
+                      </span>
+                    </label>
+                  </div>
+                </div>
+
+                <button
+                  v-if="hasPermission('submit quizzes')"
+                  type="submit"
+                  class="w-full mt-6 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300"
+                >
+                  Submit
+                </button>
+              </form>
+            </div>
+
+            <!-- Display results after submission -->
+            <div v-if="results">
+              <h2
+                class="block mb-1 text-sm font-medium text-gray-900 dark:text-white"
               >
+                Your Score: {{ score }} / {{ results.length }}
+              </h2>
+              <div v-for="(result, index) in results" :key="index" class="mb-4">
                 <p
                   class="block mb-1 text-sm font-medium text-gray-900 dark:text-white"
                 >
-                  {{ question.question }}
+                  {{ result.question }}
                 </p>
                 <div
-                  v-for="(answer, answerIndex) in getShuffledAnswers(index)"
+                  v-for="(answer, answerIndex) in result.answers"
                   :key="answerIndex"
+                  class="flex items-center mt-1"
                 >
-                  <label
-                    class="flex items-center space-x-2 mt-1 p-1 bg-gray-100 dark:bg-gray-700 rounded-lg shadow-sm"
+                  <input
+                    type="radio"
+                    disabled
+                    :checked="answer === result.user_answer"
+                    class="form-radio h-4 w-4 text-indigo-600"
+                  />
+                  <span
+                    class="text-sm font-medium"
+                    :class="{
+                      'text-green-600 dark:text-green-400':
+                        answer === result.correct_answer,
+                      'text-red-600 dark:text-red-400':
+                        answer === result.user_answer &&
+                        answer !== result.correct_answer,
+                      'text-gray-700 dark:text-gray-300':
+                        answer !== result.correct_answer &&
+                        answer !== result.user_answer,
+                    }"
                   >
-                    <input
-                      type="radio"
-                      :name="'question_' + index"
-                      :value="answer"
-                      v-model="userAnswers[index]"
-                      class="form-radio h-4 w-4 text-indigo-600"
-                    />
-                    <span
-                      class="text-sm font-medium text-gray-900 dark:text-white"
-                    >
-                      {{ answer }}
-                    </span>
-                  </label>
+                    {{ answer }}
+                  </span>
+                  <span
+                    v-if="answer === result.correct_answer"
+                    class="ml-2 text-green-600 dark:text-green-400 font-medium"
+                  >
+                    (Correct Answer)
+                  </span>
+                  <span
+                    v-else-if="
+                      answer === result.user_answer &&
+                      answer !== result.correct_answer
+                    "
+                    class="ml-2 text-red-600 dark:text-red-400 font-medium"
+                  >
+                    (Your Answer)
+                  </span>
                 </div>
               </div>
 
-              <button
-                type="submit"
+              <button v-if="hasPermission('view quizzes')" @click="loadNewQuizzes"
                 class="w-full mt-6 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300"
               >
-                Submit
+                Load New Quizzes
               </button>
-            </form>
-          </div>
-
-          <!-- Display results after submission -->
-          <div v-if="results">
-            <h2
-              class="block mb-1 text-sm font-medium text-gray-900 dark:text-white"
-            >
-              Your Score: {{ score }} / {{ results.length }}
-            </h2>
-            <div v-for="(result, index) in results" :key="index" class="mb-4">
-              <p
-                class="block mb-1 text-sm font-medium text-gray-900 dark:text-white"
-              >
-                {{ result.question }}
-              </p>
-              <div
-                v-for="(answer, answerIndex) in result.answers"
-                :key="answerIndex"
-                class="flex items-center mt-1"
-              >
-                <input
-                  type="radio"
-                  disabled
-                  :checked="answer === result.user_answer"
-                  class="form-radio h-4 w-4 text-indigo-600"
-                />
-                <span
-                  class="text-sm font-medium"
-                  :class="{
-                    'text-green-600 dark:text-green-400':
-                      answer === result.correct_answer,
-                    'text-red-600 dark:text-red-400':
-                      answer === result.user_answer &&
-                      answer !== result.correct_answer,
-                    'text-gray-700 dark:text-gray-300':
-                      answer !== result.correct_answer &&
-                      answer !== result.user_answer,
-                  }"
-                >
-                  {{ answer }}
-                </span>
-                <span
-                  v-if="answer === result.correct_answer"
-                  class="ml-2 text-green-600 dark:text-green-400 font-medium"
-                >
-                  (Correct Answer)
-                </span>
-                <span
-                  v-else-if="
-                    answer === result.user_answer &&
-                    answer !== result.correct_answer
-                  "
-                  class="ml-2 text-red-600 dark:text-red-400 font-medium"
-                >
-                  (Your Answer)
-                </span>
-              </div>
             </div>
-
-            <button
-              @click="loadNewQuizzes"
-              class="w-full mt-6 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300"
-            >
-              Load New Quizzes
-            </button>
           </div>
         </div>
       </div>
-    </div>
-  </section>
-</template>
+    </section>
+  </template>
+
 
   <script>
 import Navbar from "../components/Navbar.vue";
 import QuizService from "../services/quiz"; // Import the QuizService
+import { mapGetters } from "vuex/dist/vuex.cjs.js";
 
 export default {
-
   name: "Quiz",
-  components:{
-    Navbar
+  components: {
+    Navbar,
   },
   data() {
     return {
@@ -151,6 +152,11 @@ export default {
       shuffledAnswersList: [], // Store shuffled answers
       loading: true, // Add loading state
     };
+  },
+  computed: {
+    ...mapGetters({
+      hasPermission: "hasPermission",
+    }),
   },
   methods: {
     // Fetch quizzes from API
@@ -186,6 +192,14 @@ export default {
 
     // Submit quiz answers to the API
     async submitQuiz() {
+      this.$store
+        .dispatch("fetchUserDetails")
+        .then(() => {
+          console.log("User details fetched successfully");
+        })
+        .catch(() => {
+          console.log("Failed to fetch user details");
+        });
       try {
         const response = await QuizService.submitQuiz(
           this.questions,
@@ -205,6 +219,14 @@ export default {
     },
   },
   mounted() {
+    this.$store
+      .dispatch("fetchUserDetails")
+      .then(() => {
+        console.log("User details fetched successfully");
+      })
+      .catch(() => {
+        console.log("Failed to fetch user details");
+      });
     this.fetchQuizzes(); // Fetch quizzes when component is mounted
   },
 };
@@ -221,7 +243,11 @@ export default {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 </style>

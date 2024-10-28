@@ -42,10 +42,10 @@
               <a href="#" class="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 md:dark:text-blue-500 dark:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700" aria-current="page"><router-link to="/">Home</router-link></a>
             </li>
 
-            <li v-if="isAuthenticated">
+            <li v-if="isAuthenticated && hasPermission('view quizzes')">
               <a href="#" class="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 md:dark:text-blue-500 dark:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700"><router-link to="/quiz">Quiz</router-link></a>
             </li>
-            <li v-if="isAuthenticated">
+            <li v-if="isAuthenticated && hasPermission('view leaderboard')">
               <a href="#" class="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 md:dark:text-blue-500 dark:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700"><router-link to="/leaderboard">Leaderboard</router-link></a>
             </li>
 
@@ -87,6 +87,7 @@
   <script>
   import AuthService from '../services/auth';
   import EventBus from '../eventBus';
+  import { mapGetters } from 'vuex/dist/vuex.cjs.js';
 
   export default {
     data() {
@@ -97,6 +98,11 @@
 
         hasQuizPermission:false
       };
+    },
+    computed: {
+        ...mapGetters({
+            hasPermission:'hasPermission'
+        }),
     },
     methods: {
       async checkPermissions() {
@@ -135,6 +141,14 @@
       },
     },
     mounted() {
+        this.$store
+      .dispatch("fetchUserDetails")
+      .then(() => {
+        console.log("User details fetched successfully");
+      })
+      .catch(() => {
+        console.log("Failed to fetch user details");
+      });
       this.checkPermissions();
       EventBus.on('userLoggedIn', this.checkPermissions); // Listen for login event
     },

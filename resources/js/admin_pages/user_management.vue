@@ -211,6 +211,7 @@ export default {
             },
             editingUser: null,
             selectedRole: null,
+            currentRole:null,
             availableRoles: [],
             errorMessage: '',
             showAddUserModal: false,
@@ -273,6 +274,7 @@ export default {
         },
         async editUser(user) {
             this.editingUser = { ...user };
+            this.currentRole=user.current_user_role.id;
             this.selectedRole = user.current_user_role.id;
             this.availableRoles = user.available_roles;
             this.errorMessage = '';
@@ -290,10 +292,15 @@ export default {
                 await UserService.updateUser(this.editingUser.id, {
                     name: this.editingUser.username,
                     email: this.editingUser.email,
-                });
-                if (!this.selectedRole==null) {
-                    await UserService.assignRole(this.editingUser.id, { role_id: this.selectedRole });
-                }
+                })
+
+                console.log(this.currentRole==this.selectedRole);
+            if (this.currentRole!=this.selectedRole) {
+                await UserService.assignRole(this.editingUser.id, { role_id: this.selectedRole });
+
+            }
+
+
                 this.closeEditModal();
                 await this.fetchUsers(); // Refresh the user list
                 EventBus.emit('userUpdated');
